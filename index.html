@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BanKa — hit target, survive MPR, don't japa</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Ban<span>Ka</span></div>
+  <div class="tagline">Hit target. Survive MPR. Don't japa.</div>
+</header>
+
+<main id="app">
+
+  <!-- INTRO -->
+  <section id="screen-intro" class="screen active">
+    <div class="card intro-card">
+      <h1>Welcome to the banking hall</h1>
+      <p>You are a fresh graduate resuming at a Nigerian bank branch. Every week brings a new palava.
+      Every month ends at the MPR table, where the Regional Director decides whether you rise,
+      get a query letter, or receive the famous "your services are no longer required" letter.</p>
+      <p class="muted">Hit target. Keep your stress under control. Keep your compliance clean.
+      Keep your boss's goodwill. Climb from Banking Officer to AGM.</p>
+      <div class="btn-row">
+        <button id="btn-start" class="btn btn-primary">Start your career</button>
+        <button id="btn-continue" class="btn btn-ghost" hidden>Continue saved career</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP: bank + desk -->
+  <section id="screen-setup" class="screen">
+    <div class="card">
+      <h2>Step 1 — Choose your bank</h2>
+      <div id="bank-tiers"></div>
+    </div>
+    <div class="card">
+      <h2>Step 2 — Choose your desk</h2>
+      <div id="desk-list" class="desk-grid"></div>
+    </div>
+    <div class="btn-row">
+      <button id="btn-confirm-setup" class="btn btn-primary" disabled>Resume at desk</button>
+    </div>
+  </section>
+
+  <!-- MAIN GAME -->
+  <section id="screen-game" class="screen">
+    <div class="status-bar card">
+      <div class="status-left">
+        <div class="grade" id="hud-grade"></div>
+        <div class="bank-desk" id="hud-bank-desk"></div>
+      </div>
+      <div class="status-right" id="hud-month-week"></div>
+    </div>
+
+    <div class="stats-grid" id="hud-stats"></div>
+
+    <div class="card">
+      <div class="target-row">
+        <span>Target progress</span>
+        <span id="hud-target-text"></span>
+      </div>
+      <div class="bar-track"><div class="bar-fill target" id="hud-target-bar"></div></div>
+    </div>
+
+    <div class="card">
+      <h2 id="slot-heading"></h2>
+      <p class="muted" id="desk-blurb"></p>
+      <div id="task-list" class="task-grid"></div>
+    </div>
+
+    <div class="card log-card">
+      <h3>Branch log</h3>
+      <ul id="log-list"></ul>
+    </div>
+  </section>
+
+  <!-- EVENT MODAL -->
+  <div id="modal-event" class="modal-overlay" hidden>
+    <div class="modal card">
+      <div class="event-category" id="event-category"></div>
+      <h2 id="event-title"></h2>
+      <p id="event-desc"></p>
+      <div id="event-choices" class="choice-list"></div>
+    </div>
+  </div>
+
+  <!-- MPR MODAL -->
+  <div id="modal-mpr" class="modal-overlay" hidden>
+    <div class="modal card mpr-card">
+      <div class="mpr-header">Monthly Performance Review</div>
+      <div class="mpr-rating" id="mpr-rating-letter"></div>
+      <p id="mpr-line"></p>
+      <ul id="mpr-detail"></ul>
+      <button id="btn-mpr-continue" class="btn btn-primary">Continue</button>
+    </div>
+  </div>
+
+  <!-- END SCREEN -->
+  <section id="screen-end" class="screen">
+    <div class="card end-card">
+      <h1 id="end-title"></h1>
+      <p id="end-message"></p>
+      <div id="end-stats" class="end-stats"></div>
+      <div class="btn-row">
+        <button id="btn-restart" class="btn btn-primary">Start a new career</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>BanKa — fictional banks, fictional people. Affectionate satire, not a real institution.</span>
+</footer>
+
+<script src="js/banks.js"></script>
+<script src="js/desks.js"></script>
+<script src="js/events.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
