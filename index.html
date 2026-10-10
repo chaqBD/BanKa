@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>BanKa — hit target, survive MPR, don't japa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,22 +21,28 @@
 
   <!-- INTRO -->
   <section id="screen-intro" class="screen active">
-    <div class="card intro-card">
-      <h1>Welcome to the banking hall</h1>
-      <p>You are a fresh graduate resuming at a Nigerian bank branch. Every week brings a new palava.
-      Every month ends at the MPR table, where the Regional Director decides whether you rise,
-      get a query letter, or receive the famous "your services are no longer required" letter.</p>
-      <p class="muted">Hit target. Keep your stress under control. Keep your compliance clean.
-      Keep your boss's goodwill. Climb from Banking Officer to AGM.</p>
-      <div class="btn-row">
-        <button id="btn-start" class="btn btn-primary">Start your career</button>
-        <button id="btn-continue" class="btn btn-ghost" hidden>Continue saved career</button>
+    <div class="card hero-card" style="background-image: url('images/hero-banking-hall.jpg')">
+      <div class="hero-overlay">
+        <p class="eyebrow">A Nigerian banking life-sim</p>
+        <h1>Welcome to the banking hall</h1>
+        <p>You are a fresh graduate resuming at a Nigerian bank branch. Every week brings a new palava.
+        Every month ends at the MPR table, where the Regional Director decides whether you rise,
+        get a query letter, or receive the famous "your services are no longer required" letter.</p>
+        <p class="muted-on-dark">Hit target. Keep your stress under control. Keep your compliance clean.
+        Keep your boss's goodwill. Climb from Banking Officer to AGM.</p>
+        <div class="btn-row">
+          <button id="btn-start" class="btn btn-primary">Start your career</button>
+          <button id="btn-continue" class="btn btn-ghost-light" hidden>Continue saved career</button>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- SETUP: bank only — desk and career path are now fixed (CSO -> RM -> BM) -->
   <section id="screen-setup" class="screen">
+    <div class="banner-strip" style="background-image: url('images/lagos-hustle-banner.jpg')">
+      <span>The hustle begins. Pick your bank.</span>
+    </div>
     <div class="card">
       <h2>Choose your bank</h2>
       <p class="muted">You resume as a Customer Service Officer. Promotions will move you onto the
@@ -92,6 +101,7 @@
   <!-- MPR MODAL -->
   <div id="modal-mpr" class="modal-overlay" hidden>
     <div class="modal card mpr-card">
+      <img class="mpr-icon" src="images/mpr-stamp-icon.jpg" alt="">
       <div class="mpr-header">Monthly Performance Review</div>
       <div class="mpr-rating" id="mpr-rating-letter"></div>
       <p id="mpr-line"></p>
