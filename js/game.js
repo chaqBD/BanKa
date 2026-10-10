@@ -17,12 +17,13 @@ const SLOTS = ['Morning', 'Afternoon', 'Evening'];
 const Game = {
   state: null,
 
-  newCareer(bankId, deskId) {
+  newCareer(bankId) {
     const bank = BANKS.find(b => b.id === bankId);
-    const desk = DESKS.find(d => d.id === deskId);
+    const gradeIndex = 1; // start as Banking Officer
+    const desk = DESKS.find(d => d.id === GRADE_DESK_IDS[gradeIndex]);
     this.state = {
-      bankId, deskId,
-      gradeIndex: 1, // start as Banking Officer
+      bankId,
+      gradeIndex,
       monthNumber: 1,
       week: 1,
       slotIndex: 0,
@@ -39,16 +40,20 @@ const Game = {
       ratingHistory: [],
       log: [],
       usedEventIds: [],
+      bm: generateCharacter(),
+      regionalDirector: generateCharacter(),
       over: false,
       outcome: null // 'victory' | 'sacked' | 'burnout' | 'suspended' | 'resigned'
     };
     this.addLog(`You resume as a ${GRADES[1]} at ${bank.name} (${desk.name} desk).`);
+    this.addLog(`Your Branch Manager is ${this.state.bm.name} (${moodOf(this.state.bm).label}).`);
     this.save();
     return this.state;
   },
 
   bank() { return BANKS.find(b => b.id === this.state.bankId); },
-  desk() { return DESKS.find(d => d.id === this.state.deskId); },
+  deskIdForGrade(gradeIndex) { return GRADE_DESK_IDS[gradeIndex]; },
+  desk() { return DESKS.find(d => d.id === this.deskIdForGrade(this.state.gradeIndex)); },
   grade() { return GRADES[this.state.gradeIndex]; },
   currentSlot() { return SLOTS[this.state.slotIndex]; },
 
@@ -59,12 +64,23 @@ const Game = {
 
   clamp(v, min, max) { return Math.max(min, Math.min(max, v)); },
 
+  // The BM's mood scales how hard goodwill swings land — a Strict or
+  // Volatile boss reacts more sharply than an Easygoing one.
+  goodwillMultiplier() {
+    const mood = moodOf(this.state.bm);
+    if (mood.goodwillRange) {
+      const [min, max] = mood.goodwillRange;
+      return min + Math.random() * (max - min);
+    }
+    return mood.goodwillMult;
+  },
+
   applyEffects(effects) {
     const s = this.state.stats;
     if (!effects) return;
     if (effects.targetProgress) s.targetProgress = Math.max(0, s.targetProgress + effects.targetProgress);
     if (effects.stress) s.stress = this.clamp(s.stress + effects.stress, 0, 100);
-    if (effects.goodwill) s.goodwill = this.clamp(s.goodwill + effects.goodwill, 0, 100);
+    if (effects.goodwill) s.goodwill = this.clamp(s.goodwill + Math.round(effects.goodwill * this.goodwillMultiplier()), 0, 100);
     if (effects.compliance) s.compliance = this.clamp(s.compliance + effects.compliance, 0, 100);
     if (effects.balance) s.balance += effects.balance;
     this.checkLoseConditions();
@@ -147,6 +163,7 @@ const Game = {
       this.state.consecutiveD = 0;
     }
 
+    const previousDeskId = this.deskIdForGrade(this.state.gradeIndex);
     let promoted = false;
     let victory = false;
     if (!this.state.over && this.state.consecutiveD >= 2) {
@@ -166,10 +183,35 @@ const Game = {
       }
     }
 
-    // Salary lands, target resets and climbs for the new month.
+    const newDeskId = this.deskIdForGrade(this.state.gradeIndex);
+    const deskChanged = newDeskId !== previousDeskId;
+    if (deskChanged) {
+      const newDesk = DESKS.find(d => d.id === newDeskId);
+      if (newDeskId === 'bm') {
+        this.addLog(`${this.state.bm.name} is transferred to a regional support role. You are now the Branch Manager.`);
+      } else {
+        this.addLog(`You move to the ${newDesk.name} desk.`);
+      }
+      // A new desk starts its own target baseline rather than inheriting the old one's growth.
+      this.state.targetRequired = Math.round(newDesk.baseTarget * this.bank().targetMult);
+    } else {
+      this.state.targetRequired = Math.round(this.state.targetRequired * 1.1);
+    }
+
+    // Moods occasionally shift, for flavour, between MPR cycles.
+    if (!this.state.over) {
+      if (Math.random() < 0.15) {
+        this.state.bm.moodId = pick(MOOD_IDS);
+        this.addLog(`${this.state.bm.name} seems ${moodOf(this.state.bm).label.toLowerCase()} this month.`);
+      }
+      if (Math.random() < 0.1) {
+        this.state.regionalDirector.moodId = pick(MOOD_IDS);
+      }
+    }
+
+    // Salary lands, target resets for the new month.
     const salary = Math.round(60000 * this.bank().payMult * (1 + 0.15 * this.state.gradeIndex));
     this.applyEffects({ balance: salary });
-    this.state.targetRequired = Math.round(this.state.targetRequired * 1.1);
     this.state.stats.targetProgress = 0;
     this.state.stats.stress = this.clamp(this.state.stats.stress - 15, 0, 100);
     this.state.monthNumber++;
@@ -178,7 +220,7 @@ const Game = {
 
     this.addLog(`MPR result: ${result.rating} rating (score ${result.composite}).`);
     this.save();
-    return { ...result, promoted, victory };
+    return { ...result, promoted, victory, deskChanged };
   },
 
   save() {

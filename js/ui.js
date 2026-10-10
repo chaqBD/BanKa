@@ -3,11 +3,11 @@
 
 const UI = {
   selectedBankId: null,
-  selectedDeskId: null,
 
   init() {
     this.cacheEls();
     this.bindStaticEvents();
+    this.updateMuteIcon();
     if (Game.load() && !Game.state.over) {
       this.els.btnContinue.hidden = false;
     }
@@ -20,11 +20,11 @@ const UI = {
       btnStart: document.getElementById('btn-start'),
       btnContinue: document.getElementById('btn-continue'),
       bankTiers: document.getElementById('bank-tiers'),
-      deskList: document.getElementById('desk-list'),
       btnConfirmSetup: document.getElementById('btn-confirm-setup'),
       hudGrade: document.getElementById('hud-grade'),
       hudBankDesk: document.getElementById('hud-bank-desk'),
       hudMonthWeek: document.getElementById('hud-month-week'),
+      hudOffice: document.getElementById('hud-office'),
       hudStats: document.getElementById('hud-stats'),
       hudTargetText: document.getElementById('hud-target-text'),
       hudTargetBar: document.getElementById('hud-target-bar'),
@@ -45,7 +45,8 @@ const UI = {
       endTitle: document.getElementById('end-title'),
       endMessage: document.getElementById('end-message'),
       endStats: document.getElementById('end-stats'),
-      btnRestart: document.getElementById('btn-restart')
+      btnRestart: document.getElementById('btn-restart'),
+      btnMute: document.getElementById('btn-mute')
     };
   },
 
@@ -55,6 +56,14 @@ const UI = {
     this.els.btnConfirmSetup.addEventListener('click', () => this.confirmSetup());
     this.els.btnMprContinue.addEventListener('click', () => this.dismissMpr());
     this.els.btnRestart.addEventListener('click', () => this.restart());
+    this.els.btnMute.addEventListener('click', () => {
+      SoundFX.toggleMute();
+      this.updateMuteIcon();
+    });
+  },
+
+  updateMuteIcon() {
+    this.els.btnMute.textContent = SoundFX.muted ? '🔇' : '🔊';
   },
 
   showScreen(id) {
@@ -64,9 +73,7 @@ const UI = {
   // ---------- Setup ----------
   startSetup() {
     this.selectedBankId = null;
-    this.selectedDeskId = null;
     this.renderBankTiers();
-    this.renderDesks();
     this.els.btnConfirmSetup.disabled = true;
     this.showScreen('screen-setup');
   },
@@ -103,32 +110,12 @@ const UI = {
     });
   },
 
-  renderDesks() {
-    this.els.deskList.innerHTML = '';
-    DESKS.forEach(desk => {
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'desk-card';
-      card.dataset.deskId = desk.id;
-      card.innerHTML = `<div class="desk-card-title">${desk.name}</div>
-        <div class="desk-card-unit">Target: ${desk.targetUnit}</div>
-        <div class="desk-card-blurb">${desk.blurb}</div>`;
-      card.addEventListener('click', () => {
-        this.selectedDeskId = desk.id;
-        this.els.deskList.querySelectorAll('.desk-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        this.updateConfirmState();
-      });
-      this.els.deskList.appendChild(card);
-    });
-  },
-
   updateConfirmState() {
-    this.els.btnConfirmSetup.disabled = !(this.selectedBankId && this.selectedDeskId);
+    this.els.btnConfirmSetup.disabled = !this.selectedBankId;
   },
 
   confirmSetup() {
-    Game.newCareer(this.selectedBankId, this.selectedDeskId);
+    Game.newCareer(this.selectedBankId);
     this.renderGameScreen();
     this.showScreen('screen-game');
   },
@@ -165,6 +152,13 @@ const UI = {
     this.els.hudGrade.textContent = Game.grade();
     this.els.hudBankDesk.textContent = `${bank.name} · ${desk.name}`;
     this.els.hudMonthWeek.textContent = `Month ${s.monthNumber} · Week ${s.week} of 4`;
+
+    const bmMood = moodOf(s.bm);
+    if (desk.id === 'bm') {
+      this.els.hudOffice.innerHTML = `<div class="office-row"><strong>You</strong> are the Branch Manager now. Regional Director ${s.regionalDirector.name} watches your numbers directly.</div>`;
+    } else {
+      this.els.hudOffice.innerHTML = `<div class="office-row"><strong>${s.bm.name}</strong> — your Branch Manager <span class="mood-tag mood-${bmMood.id}">${bmMood.label}</span></div>`;
+    }
 
     this.els.hudStats.innerHTML = '';
     this.statDefs.forEach(def => {
@@ -230,6 +224,7 @@ const UI = {
   },
 
   pickTask(taskId) {
+    SoundFX.playClick();
     Game.doTask(taskId);
     if (Game.state.over) { this.showEnd(); return; }
     if (Game.weekComplete()) {
@@ -260,6 +255,7 @@ const UI = {
   },
 
   resolveEventChoice(idx) {
+    SoundFX.playClick();
     Game.resolveEvent(this._currentEvent, idx);
     this.els.modalEvent.hidden = true;
     if (Game.state.over) { this.showEnd(); return; }
@@ -273,19 +269,21 @@ const UI = {
   // ---------- MPR modal ----------
   showMprModal() {
     const result = Game.runMPR();
+    const rd = Game.state.regionalDirector;
     this.els.mprRatingLetter.textContent = result.rating;
     this.els.mprRatingLetter.className = `mpr-rating mpr-${result.rating}`;
-    const ratingLines = {
-      A: '"Excellent. This is how it should be done." — Regional Director',
-      B: '"Fair is not excellent. Close the gap next month." — Regional Director',
-      C: '"We need to see more from you." — Regional Director',
-      D: '"This is a query letter situation." — Regional Director'
-    };
-    this.els.mprLine.textContent = ratingLines[result.rating];
+    // Force the stamp animation to replay even if the previous rating was the same letter.
+    void this.els.mprRatingLetter.offsetWidth;
+    this.els.mprRatingLetter.classList.add('stamp-pop');
+
+    const line = RD_LINES[rd.moodId][result.rating];
+    this.els.mprLine.textContent = `${line} — ${rd.name}, Regional Director`;
+
     this.els.mprDetail.innerHTML = '';
     const details = [
       `Target achieved: ${result.targetPct}%`,
       `Composite score: ${result.composite}/100`,
+      result.deskChanged ? `You now work the ${Game.desk().name} desk.` : null,
       result.promoted ? `Promoted to ${Game.grade()}!` : null,
       result.victory ? 'You have reached Assistant General Manager.' : null
     ].filter(Boolean);
@@ -295,6 +293,10 @@ const UI = {
       this.els.mprDetail.appendChild(li);
     });
     this.els.modalMpr.hidden = false;
+
+    SoundFX.playStamp();
+    setTimeout(() => SoundFX.playRating(result.rating), 180);
+    if (result.promoted) setTimeout(() => SoundFX.playPromotion(), 500);
   },
 
   dismissMpr() {

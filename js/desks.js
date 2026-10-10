@@ -41,18 +41,24 @@ const DESKS = [
     ]
   },
   {
-    id: 'hoa',
-    name: 'Head Office Analyst',
-    short: 'HOA',
-    targetUnit: 'Deliverables',
-    baseTarget: 35,
-    blurb: 'You live in spreadsheets and decks: MPR packs, CBN returns, suspense accounts. Head Office deadlines do not move.',
+    id: 'bm',
+    name: 'Branch Manager',
+    short: 'BM',
+    targetUnit: 'Branch performance score',
+    baseTarget: 45,
+    blurb: 'The branch is yours now. Staff, numbers, audits and the Regional Director all answer to your desk.',
     tasks: [
-      { id: 'mpr_deck', name: 'MPR deck for the ED', flavor: 'Forty slides due by 6pm, half the numbers still missing.', effects: { targetProgress: 9, stress: 10, goodwill: 3 } },
-      { id: 'gl_recon', name: 'Suspense GL reconciliation', flavor: 'An unexplained ₦2.3 million sitting in suspense since March.', effects: { targetProgress: 6, compliance: 9, stress: 6 } },
-      { id: 'cbn_returns', name: 'CBN returns', flavor: 'The regulator does not accept "network was down" as an excuse.', effects: { targetProgress: 8, compliance: 5, stress: 9 } },
-      { id: 'it_downtime', name: 'IT downtime firefighting', flavor: 'The core banking app is "thinking" again.', effects: { stress: 8, goodwill: 4 } },
-      { id: 'quick_meetings', name: '"Quick" meetings', flavor: 'This one will take fifteen minutes, they said.', effects: { stress: 6, targetProgress: 1 } }
+      { id: 'morning_briefing', name: 'Chair the morning briefing', flavor: 'Set the tone for the floor before the first customer walks in.', effects: { targetProgress: 7, stress: 5 } },
+      { id: 'staff_numbers_review', name: 'Review staff numbers', flavor: 'Catching a gap on Tuesday beats explaining it at MPR.', effects: { targetProgress: 5, compliance: 7, stress: 5 } },
+      { id: 'escalated_customer', name: 'Handle an escalated customer', flavor: 'Nobody below you could calm this one down.', effects: { goodwill: 5, stress: 7 } },
+      { id: 'big_ticket_signoff', name: 'Sign off big-ticket approvals', flavor: 'Your signature, your risk. Read the file properly.', effects: { targetProgress: 10, stress: 8, compliance: -2 } },
+      { id: 'ed_regulator_prep', name: 'Prepare for an ED or regulator visit', flavor: 'Every file needs to be clean before they walk in.', effects: { targetProgress: 4, compliance: 9, stress: 9 } }
     ]
   }
 ];
+
+// Maps a grade index (see GRADES in game.js) to the desk the player works that month.
+// Executive Trainee / Banking Officer / Senior Banking Officer -> Customer Service Officer
+// Assistant Manager / Deputy Manager                           -> Relationship Manager
+// Manager / Assistant General Manager                          -> Branch Manager
+const GRADE_DESK_IDS = ['cso', 'cso', 'cso', 'rm', 'rm', 'bm', 'bm'];
