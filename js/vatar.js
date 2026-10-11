@@ -5,6 +5,8 @@
 const VatarIntegration = {
   active: false,
   player: null,
+  _pauseCbs: [],
+  _resumeCbs: [],
 
   async init() {
     if (typeof window.Vatar === 'undefined') return { active: false, player: null };
@@ -12,6 +14,10 @@ const VatarIntegration = {
       const { player } = await window.Vatar.init();
       this.active = true;
       this.player = player;
+      // The phone backgrounded, or (if we ever add purchases) the pay sheet
+      // opened over us: stop sound and block input until resume.
+      window.Vatar.onPause(() => this._pauseCbs.forEach(fn => fn()));
+      window.Vatar.onResume(() => this._resumeCbs.forEach(fn => fn()));
       return { active: true, player };
     } catch (e) {
       // Most commonly not_framed: the page was opened outside the Lagos Life
@@ -20,6 +26,9 @@ const VatarIntegration = {
       return { active: false, player: null };
     }
   },
+
+  onPause(fn) { this._pauseCbs.push(fn); },
+  onResume(fn) { this._resumeCbs.push(fn); },
 
   // BanKa's score is the player's account balance in naira, per the design
   // plan ("Account balance: shown on the end screen as a score").

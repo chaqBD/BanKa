@@ -16,6 +16,14 @@ const UI = {
       if (!active) return;
       this.els.vatarBadge.textContent = `👋 ${player.name}`;
       this.els.vatarBadge.hidden = false;
+      VatarIntegration.onPause(() => {
+        SoundFX.pauseAll();
+        this.els.vatarPauseOverlay.hidden = false;
+      });
+      VatarIntegration.onResume(() => {
+        SoundFX.resumeAll();
+        this.els.vatarPauseOverlay.hidden = true;
+      });
     });
   },
 
@@ -52,7 +60,8 @@ const UI = {
       endStats: document.getElementById('end-stats'),
       btnRestart: document.getElementById('btn-restart'),
       btnMute: document.getElementById('btn-mute'),
-      vatarBadge: document.getElementById('vatar-badge')
+      vatarBadge: document.getElementById('vatar-badge'),
+      vatarPauseOverlay: document.getElementById('vatar-pause-overlay')
     };
   },
 

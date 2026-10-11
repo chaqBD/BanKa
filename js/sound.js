@@ -26,7 +26,20 @@ const SoundFX = {
     return this.muted;
   },
 
+  // Called on Vatar.onPause()/onResume() — stop/allow sound while the app is
+  // backgrounded or a pay sheet covers it.
+  appPaused: false,
+  pauseAll() {
+    this.appPaused = true;
+    if (this.ctx && this.ctx.state === 'running') this.ctx.suspend();
+  },
+  resumeAll() {
+    this.appPaused = false;
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+
   tone(freq, startTime, duration, type, gain) {
+    if (this.appPaused) return;
     const ctx = this.ensureContext();
     if (!ctx || this.muted) return;
     const osc = ctx.createOscillator();
