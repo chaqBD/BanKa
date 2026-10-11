@@ -12,6 +12,11 @@ const UI = {
       this.els.btnContinue.hidden = false;
     }
     this.showScreen('screen-intro');
+    VatarIntegration.init().then(({ active, player }) => {
+      if (!active) return;
+      this.els.vatarBadge.textContent = `👋 ${player.name}`;
+      this.els.vatarBadge.hidden = false;
+    });
   },
 
   cacheEls() {
@@ -46,7 +51,8 @@ const UI = {
       endMessage: document.getElementById('end-message'),
       endStats: document.getElementById('end-stats'),
       btnRestart: document.getElementById('btn-restart'),
-      btnMute: document.getElementById('btn-mute')
+      btnMute: document.getElementById('btn-mute'),
+      vatarBadge: document.getElementById('vatar-badge')
     };
   },
 
@@ -294,6 +300,7 @@ const UI = {
     });
     this.els.modalMpr.hidden = false;
 
+    VatarIntegration.submitScore(Game.state.stats.balance);
     SoundFX.playStamp();
     setTimeout(() => SoundFX.playRating(result.rating), 180);
     if (result.promoted) setTimeout(() => SoundFX.playPromotion(), 500);
@@ -334,6 +341,7 @@ const UI = {
     this.els.endTitle.textContent = copy.title;
     this.els.endMessage.textContent = copy.message;
     const s = Game.state;
+    VatarIntegration.submitScore(s.stats.balance);
     this.els.endStats.innerHTML = '';
     const rows = [
       ['Final grade', Game.grade()],

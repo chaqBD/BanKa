@@ -68,6 +68,15 @@ h1, h2, h3, .brand, .btn, .grade, .mpr-rating, .eyebrow {
 .brand span { color: var(--gold-light); }
 .tagline { font-size: 13px; opacity: 0.85; flex: 1; }
 
+.vatar-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
 .btn-mute {
   background: rgba(255, 255, 255, 0.12);
   border: none;

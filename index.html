@@ -14,6 +14,7 @@
 <header class="topbar">
   <div class="brand">Ban<span>Ka</span></div>
   <div class="tagline">Hit target. Survive MPR. Don't japa.</div>
+  <span id="vatar-badge" class="vatar-badge" hidden></span>
   <button id="btn-mute" class="btn-mute" title="Toggle sound" aria-label="Toggle sound">🔊</button>
 </header>
 
@@ -128,6 +129,10 @@
   <span>BanKa — fictional banks, fictional people. Affectionate satire, not a real institution.</span>
 </footer>
 
+<!-- Lagos Life / Vatar Games SDK. Harmless to load standalone: Vatar.init() simply
+     rejects with not_framed when not opened inside the Lagos Life game player. -->
+<script src="https://lagoslife.app/sdk/vatar-games-v1.js"></script>
+<script src="js/vatar.js"></script>
 <script src="js/banks.js"></script>
 <script src="js/desks.js"></script>
 <script src="js/names.js"></script>
