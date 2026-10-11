@@ -24,6 +24,9 @@ const UI = {
         SoundFX.resumeAll();
         this.els.vatarPauseOverlay.hidden = true;
       });
+      VatarIntegration.onSupporterBadge(() => {
+        if (this.els.screenGame.classList.contains('active')) this.renderGameScreen();
+      });
     });
   },
 
@@ -61,7 +64,8 @@ const UI = {
       btnRestart: document.getElementById('btn-restart'),
       btnMute: document.getElementById('btn-mute'),
       vatarBadge: document.getElementById('vatar-badge'),
-      vatarPauseOverlay: document.getElementById('vatar-pause-overlay')
+      vatarPauseOverlay: document.getElementById('vatar-pause-overlay'),
+      screenGame: document.getElementById('screen-game')
     };
   },
 
@@ -169,10 +173,18 @@ const UI = {
     this.els.hudMonthWeek.textContent = `Month ${s.monthNumber} · Week ${s.week} of 4`;
 
     const bmMood = moodOf(s.bm);
-    if (desk.id === 'bm') {
-      this.els.hudOffice.innerHTML = `<div class="office-row"><strong>You</strong> are the Branch Manager now. Regional Director ${s.regionalDirector.name} watches your numbers directly.</div>`;
-    } else {
-      this.els.hudOffice.innerHTML = `<div class="office-row"><strong>${s.bm.name}</strong> — your Branch Manager <span class="mood-tag mood-${bmMood.id}">${bmMood.label}</span></div>`;
+    let officeHtml = desk.id === 'bm'
+      ? `<div class="office-row"><strong>You</strong> are the Branch Manager now. Regional Director ${s.regionalDirector.name} watches your numbers directly.</div>`
+      : `<div class="office-row"><strong>${s.bm.name}</strong> — your Branch Manager <span class="mood-tag mood-${bmMood.id}">${bmMood.label}</span></div>`;
+    if (VatarIntegration.active) {
+      officeHtml += VatarIntegration.hasSupporterBadge
+        ? `<div class="office-row supporter-row">💚 Thanks for supporting BanKa!</div>`
+        : `<div class="office-row supporter-row"><button type="button" id="btn-support" class="btn-support">☕ Support BanKa · ₦100</button></div>`;
+    }
+    this.els.hudOffice.innerHTML = officeHtml;
+    if (VatarIntegration.active && !VatarIntegration.hasSupporterBadge) {
+      const btnSupport = document.getElementById('btn-support');
+      if (btnSupport) btnSupport.addEventListener('click', () => this.buySupporterBadge());
     }
 
     this.els.hudStats.innerHTML = '';
@@ -246,6 +258,18 @@ const UI = {
       this.showEventModal();
     } else {
       this.renderGameScreen();
+    }
+  },
+
+  async buySupporterBadge() {
+    const btn = document.getElementById('btn-support');
+    if (btn) { btn.disabled = true; btn.textContent = 'Opening pay sheet…'; }
+    const result = await VatarIntegration.buySupporterBadge();
+    if (result.ok) {
+      this.renderGameScreen();
+    } else if (btn) {
+      btn.disabled = false;
+      btn.textContent = '☕ Support BanKa · ₦100';
     }
   },
 
